@@ -77,7 +77,7 @@ def top_selling_products(transactions, n=5):
             # Skip malformed records safely
             continue
     
-    # Convert dictionary → list of tuples
+    # Convert dictionary to list of tuples
     product_list  = [
         (productName,
          details["total_quantity"],
@@ -131,6 +131,122 @@ def customer_analysis(transactions):
     )
 
     return sorted_customer_summary
+
+
+def daily_sales_trend(transactions):
+    daily_summary = {}
+
+    # Aggregate daily revenue, daily transactions count per day
+    for transaction in transactions:
+        try:
+            date = transaction['Date']
+            amount = transaction['Quantity'] * transaction['UnitPrice']
+            customer = transaction['CustomerID']
+
+            if date not in daily_summary:
+                    daily_summary[date] = {
+                        "revenue": 0.0,
+                        "transaction_count": 0,
+                        "customers": set(),
+                    }
+
+            daily_summary[date]["revenue"] += amount
+            daily_summary[date]["transaction_count"] += 1
+            daily_summary[date]["customers"].add(customer)
+
+        except (ValueError, TypeError):
+            # Skip malformed records safely
+            continue
+
+    # unique customers count 
+    for date in daily_summary:
+        daily_summary[date]["unique_customers"] = len(daily_summary[date]["customers"])
+        del daily_summary[date]["customers"]
+
+    # Sort chronologically by date
+    sorted_daily_summary = dict(sorted(daily_summary.items()))
+
+    return sorted_daily_summary
+
+
+def find_peak_sales_day(transactions):
+    daily_sales_summary = {}
+
+    # Aggregate daily revenue, daily transactions count per day
+    for transaction in transactions:
+        try:
+            date = transaction['Date']
+            amount = transaction['Quantity'] * transaction['UnitPrice']
+
+            if date not in daily_sales_summary:
+                    daily_sales_summary[date] = {
+                        "revenue": 0.0,
+                        "transaction_count": 0,
+                    }
+
+            daily_sales_summary[date]["revenue"] += amount
+            daily_sales_summary[date]["transaction_count"] += 1
+
+        except (ValueError, TypeError):
+            # Skip malformed records safely
+            continue
+    
+    # Peak day sales
+    peak_date = None
+    peak_revenue = 0
+    peak_transcation = 0
+
+    for date in daily_sales_summary:
+        if daily_sales_summary[date]["revenue"] > peak_revenue:
+            peak_revenue = daily_sales_summary[date]["revenue"]
+            peak_date = date
+            peak_transcation = daily_sales_summary[date]["transaction_count"]
+
+    return (peak_date, peak_revenue, peak_transcation)
+
+
+def low_performing_products(transactions, threshold=10):
+    product_summary = {}
+
+    # Aggregate quantity and revenue per product
+    for transaction in transactions:
+        try:
+            productName = transaction['ProductName']
+            quantity = transaction['Quantity']
+            amount = transaction['Quantity'] * transaction['UnitPrice']
+            
+            if productName not in product_summary:
+                product_summary[productName] = {
+                    "total_quantity": 0,
+                    "total_revenue": 0.0
+                }
+
+            product_summary[productName]["total_quantity"] += quantity
+            product_summary[productName]["total_revenue"] += amount
+
+        except (ValueError, TypeError):
+            # Skip malformed records safely
+            continue
+    
+    # Convert dictionary to list of tuples
+    low_products  = [
+        (productName,
+         details["total_quantity"],
+         details["total_revenue"], )
+        for productName, details in product_summary.items()
+        if details['total_quantity'] < threshold
+    ]
+
+    # Sort by TotalQuantity (ascending)
+    low_products.sort(key=lambda item: item[1])
+
+    return low_products
+
+
+    
+    
+
+
         
 
 
