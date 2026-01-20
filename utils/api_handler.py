@@ -120,7 +120,7 @@ def enrich_sales_data(transactions, product_mapping):
 
         enrich_transactions.append(enrich_trans)
 
-    save_enriched_data(enrich_transactions)
+    return enrich_transactions
 
 
 def generate_sales_report(transactions, enriched_transactions, output_file='output/sales_report.txt'):
